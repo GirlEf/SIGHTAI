@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  sightai:
+    build: .
+    container_name: sightai
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist the trained model and reviews database outside the container
+      - ./saved_models:/app/saved_models
+    environment:
+      - TF_CPP_MIN_LOG_LEVEL=2      # suppress verbose TF logs
+      - TF_ENABLE_ONEDNN_OPTS=0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

@@ -1,0 +1,13 @@
+{
+  "threshold": 0.40312162041664124,
+  "sensitivity": 0.9153,
+  "specificity": 0.6066,
+  "precision": 0.6923,
+  "f1_score": 0.7883,
+  "tp": 54,
+  "tn": 37,
+  "fp": 24,
+  "fn": 5,
+  "loss": 0.0296,
+  "compile_metrics": 0.7583
+}

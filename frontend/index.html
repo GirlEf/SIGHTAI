@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>SIGHTAI – TB Detection Platform</title>
+  <style>
+    /* ── Variables ───────────────────────────────────────────────── */
+    :root{
+      --green:#006B3F; --green-dark:#004d2c; --green-light:#e8f5ee;
+      --gold:#FCD116;  --red:#CE1126;
+      --white:#fff;    --light:#F4F7F5;
+      --gray:#6B7280;  --border:#D1D5DB;
+      --shadow:0 4px 20px rgba(0,0,0,0.08);
+      --radius:14px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--light);color:#1F2937;min-height:100vh}
+    a{color:var(--green)}
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    header{background:var(--green);box-shadow:0 2px 12px rgba(0,0,0,0.18)}
+    .flag{height:5px;background:linear-gradient(90deg,var(--red) 33.3%,var(--gold) 33.3% 66.6%,var(--green) 66.6%)}
+    .hbar{max-width:1200px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-icon{width:42px;height:42px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .logo h1{color:#fff;font-size:1.4rem;font-weight:700;letter-spacing:1px}
+    .logo p{color:rgba(255,255,255,.7);font-size:.72rem}
+    .hbadge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:4px 12px;border-radius:999px;font-size:.72rem}
+
+    /* ── Nav tabs ─────────────────────────────────────────────────── */
+    .nav-tabs{background:var(--green-dark);display:flex;max-width:1200px;margin:0 auto;padding:0 24px}
+    .nav-tab{padding:10px 22px;color:rgba(255,255,255,.65);font-size:.85rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;transition:color .2s,border-color .2s}
+    .nav-tab:hover{color:#fff}
+    .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+    /* ── Progress steps ───────────────────────────────────────────── */
+    .steps{background:#fff;border-bottom:1px solid var(--border);padding:0}
+    .steps-inner{max-width:1200px;margin:0 auto;display:flex;padding:12px 24px;gap:0}
+    .step{display:flex;align-items:center;gap:8px;flex:1;opacity:.4;transition:opacity .3s}
+    .step.active{opacity:1}
+    .step.done{opacity:.75}
+    .step-num{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+    .step.active .step-num{background:var(--green)}
+    .step.done   .step-num{background:#10B981}
+    .step-label{font-size:.75rem;font-weight:600;color:#374151}
+    .step-line{flex:1;height:2px;background:var(--border);margin:0 4px;align-self:center}
+    .step.done .step-line{background:#10B981}
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    main{max-width:1200px;margin:28px auto;padding:0 20px;display:flex;flex-direction:column;gap:22px}
+
+    /* ── Cards ────────────────────────────────────────────────────── */
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+    .card-title{font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:16px;display:flex;align-items:center;gap:8px;letter-spacing:.3px}
+
+    /* ── Upload / Analysis grid ───────────────────────────────────── */
+    .top-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    @media(max-width:700px){.top-grid{grid-template-columns:1fr}}
+
+    /* Upload zone */
+    .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+    .upload-zone:hover,.upload-zone.drag-over{border-color:var(--green);background:var(--green-light)}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .upload-icon{font-size:2rem}
+    .upload-zone p{color:var(--gray);font-size:.83rem}
+    .upload-zone strong{color:var(--green)}
+    #preview-wrap{margin-top:12px;display:none}
+    #preview-wrap img{width:100%;border-radius:8px;border:1px solid var(--border);max-height:210px;object-fit:contain}
+    #preview-name{font-size:.72rem;color:var(--gray);margin-top:4px;text-align:center}
+
+    /* Buttons */
+    .btn{padding:11px 20px;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;transition:background .2s,opacity .2s}
+    .btn-primary{background:var(--green);color:#fff;width:100%;margin-top:12px}
+    .btn-primary:hover:not(:disabled){background:var(--green-dark)}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+    .btn-secondary{background:#F3F4F6;color:#374151;border:1px solid var(--border)}
+    .btn-secondary:hover{background:var(--border)}
+    .btn-sm{padding:7px 14px;font-size:.8rem}
+    .btn-icon{background:none;border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:.8rem;cursor:pointer;color:#374151;display:inline-flex;align-items:center;gap:5px}
+    .btn-icon:hover{background:var(--light)}
+
+    /* Spinner */
+    .spinner{display:none;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:14px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── AI Result card ───────────────────────────────────────────── */
+    #result-card{display:none}
+    .risk-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:999px;font-weight:700;font-size:.9rem;margin-bottom:14px}
+    .risk-Low   {background:#D1FAE5;color:#065F46}
+    .risk-Medium{background:#FEF3C7;color:#92400E}
+    .risk-High  {background:#FEE2E2;color:#991B1B}
+    .prob-bar-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--gray);margin-bottom:4px}
+    .prob-track{height:10px;background:var(--border);border-radius:999px;overflow:hidden;margin-bottom:14px}
+    .prob-fill{height:100%;border-radius:999px;transition:width .7s ease}
+    .fill-low{background:#10B981}.fill-med{background:#F59E0B}.fill-high{background:#EF4444}
+    .mrow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.83rem}
+    .mrow:last-child{border-bottom:none}
+    .mlabel{color:var(--gray)}.mval{font-weight:600}
+    .ai-message{background:var(--light);border-left:4px solid var(--green);border-radius:4px;padding:10px 14px;font-size:.82rem;line-height:1.55;margin-top:12px}
+
+    /* ── Grad-CAM section ─────────────────────────────────────────── */
+    #gradcam-section{display:none}
+    .gcam-tabs{display:flex;gap:6px;margin-bottom:16px}
+    .gcam-tab{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:.8rem;cursor:pointer;font-weight:500;color:#374151;transition:background .15s}
+    .gcam-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
+    .gcam-views{position:relative}
+    .gcam-view{display:none}
+    .gcam-view.active{display:block}
+    .gcam-img-wrap{text-align:center}
+    .gcam-img-wrap img{width:100%;max-height:260px;object-fit:contain;border-radius:8px;border:1px solid var(--border)}
+    .gcam-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .gcam-caption{font-size:.75rem;color:var(--gray);text-align:center;margin-top:6px}
+    .heatmap-legend{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;font-size:.76rem;color:var(--gray)}
+    .legend-bar{height:10px;width:130px;border-radius:4px;background:linear-gradient(90deg,#00f,#0ff,#0f0,#ff0,#f00)}
+
+    /* ── Explainability section ───────────────────────────────────── */
+    #explain-section{display:none}
+    .xai-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:600px){.xai-grid{grid-template-columns:1fr}}
+    .xai-box{background:var(--light);border-radius:10px;padding:16px}
+    .xai-box h3{font-size:.83rem;font-weight:700;color:#374151;margin-bottom:10px}
+    .xai-list{list-style:none}
+    .xai-list li{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:.81rem;border-bottom:1px solid var(--border)}
+    .xai-list li:last-child{border-bottom:none}
+    .xai-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px}
+    .dot-high{background:#EF4444}.dot-med{background:#F59E0B}.dot-low{background:#10B981}
+
+    /* ── Human review form ────────────────────────────────────────── */
+    #review-section{display:none}
+    .review-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:600px){.review-grid{grid-template-columns:1fr}}
+    .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+    .form-group label{font-size:.78rem;font-weight:600;color:#374151}
+    .form-group input,.form-group select,.form-group textarea{
+      padding:8px 10px;border:1px solid var(--border);border-radius:7px;
+      font-size:.83rem;font-family:inherit;width:100%;
+      transition:border-color .15s;background:#fff}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+      outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(0,107,63,.12)}
+    .form-group textarea{resize:vertical;min-height:80px}
+    .decision-opts{display:flex;gap:10px;margin-top:4px}
+    .decision-opt{flex:1;padding:10px;border:2px solid var(--border);border-radius:9px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;font-size:.82rem;font-weight:600}
+    .decision-opt.agree  {border-color:#10B981;background:#D1FAE5;color:#065F46}
+    .decision-opt.disagree{border-color:#EF4444;background:#FEE2E2;color:#991B1B}
+    .decision-opt.uncertain{border-color:#F59E0B;background:#FEF3C7;color:#92400E}
+    .decision-opt:not(.agree):not(.disagree):not(.uncertain){color:#374151}
+    .decision-opt input[type=radio]{display:none}
+    #override-row{display:none;margin-top:12px}
+    .section-divider{font-size:.75rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;padding:10px 0 6px;border-bottom:2px solid var(--green-light);margin-bottom:12px}
+
+    /* ── Decision record ──────────────────────────────────────────── */
+    #record-section{display:none}
+    .record-card{background:linear-gradient(135deg,var(--green-light),#fff);border:2px solid var(--green);border-radius:var(--radius);padding:24px}
+    .record-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .record-id{font-size:1.1rem;font-weight:700;color:var(--green)}
+    .record-ts{font-size:.75rem;color:var(--gray)}
+    .record-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    @media(max-width:600px){.record-grid{grid-template-columns:1fr}}
+    .record-box{background:#fff;border-radius:9px;padding:14px;border:1px solid var(--border)}
+    .record-box h4{font-size:.78rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .record-row{display:flex;justify-content:space-between;font-size:.81rem;padding:4px 0;border-bottom:1px solid var(--light)}
+    .record-row:last-child{border-bottom:none}
+    .record-row span:first-child{color:var(--gray)}
+    .record-row span:last-child{font-weight:600}
+    .record-notes{background:var(--light);border-radius:8px;padding:12px;font-size:.81rem;line-height:1.55;margin-bottom:14px}
+    .agreement-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:.8rem;font-weight:700}
+    .agree-yes{background:#D1FAE5;color:#065F46}
+    .agree-no {background:#FEE2E2;color:#991B1B}
+    .agree-unc{background:#FEF3C7;color:#92400E}
+    .record-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* ── Error / alert ────────────────────────────────────────────── */
+    .alert-box{padding:10px 14px;border-radius:8px;font-size:.83rem;margin-top:10px;display:none}
+    .alert-error{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5}
+    .alert-success{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
+
+    /* ── Disclaimer ───────────────────────────────────────────────── */
+    .disclaimer{background:#FFF7ED;border:1px solid #FED7AA;border-radius:var(--radius);padding:14px 18px;font-size:.77rem;color:#92400E;line-height:1.5}
+    .disclaimer strong{display:block;margin-bottom:3px}
+
+    /* ════════════════════════════════════════════════════════════════
+       DASHBOARD STYLES
+    ════════════════════════════════════════════════════════════════ */
+    #page-dashboard{display:none}
+    #page-analysis{display:block}
+
+    /* Stat cards */
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+    @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:500px){.stat-grid{grid-template-columns:1fr}}
+    .stat-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:6px}
+    .stat-label{font-size:.75rem;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+    .stat-value{font-size:2rem;font-weight:700;color:#1F2937;line-height:1}
+    .stat-sub{font-size:.77rem;color:var(--gray)}
+    .stat-card.green .stat-value{color:var(--green)}
+    .stat-card.red   .stat-value{color:var(--red)}
+    .stat-card.amber .stat-value{color:#D97706}
+    .stat-card.blue  .stat-value{color:#2563EB}
+
+    /* Charts row */
+    .charts-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:22px}
+    @media(max-width:900px){.charts-row{grid-template-columns:1fr 1fr}}
+    @media(max-width:580px){.charts-row{grid-template-columns:1fr}}
+    .chart-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+    .chart-title{font-size:.82rem;font-weight:700;color:var(--green);margin-bottom:14px}
+
+    /* CSS bar charts */
+    .bar-chart{display:flex;flex-direction:column;gap:10px}
+    .bar-row{display:flex;flex-direction:column;gap:3px}
+    .bar-meta{display:flex;justify-content:space-between;font-size:.77rem}
+    .bar-label{color:#374151;font-weight:500}
+    .bar-count{color:var(--gray)}
+    .bar-track{height:10px;background:var(--light);border-radius:999px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:999px;transition:width .6s ease}
+
+    /* Donut chart (pure CSS) */
+    .donut-wrap{display:flex;align-items:center;gap:16px}
+    .donut{position:relative;width:90px;height:90px;flex-shrink:0}
+    .donut svg{transform:rotate(-90deg)}
+    .donut-legend{display:flex;flex-direction:column;gap:6px;flex:1}
+    .donut-item{display:flex;align-items:center;gap:7px;font-size:.78rem}
+    .donut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+    /* Reviews table */
+    .table-toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+    .table-toolbar input,.table-toolbar select{
+      padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:.82rem;
+      font-family:inherit;background:#fff}
+    .table-toolbar input{flex:1;min-width:160px}
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:.82rem}
+    thead th{background:var(--light);color:#374151;font-weight:700;padding:9px 12px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap}
+    tbody tr{border-bottom:1px solid var(--border)}
+    tbody tr:hover{background:#F9FAFB}
+    tbody td{padding:9px 12px;vertical-align:middle}
+    .tbl-badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:.74rem;font-weight:600}
+    .tbl-low   {background:#D1FAE5;color:#065F46}
+    .tbl-medium{background:#FEF3C7;color:#92400E}
+    .tbl-high  {background:#FEE2E2;color:#991B1B}
+    .tbl-agree   {background:#D1FAE5;color:#065F46}
+    .tbl-disagree{background:#FEE2E2;color:#991B1B}
+    .tbl-uncertain{background:#FEF3C7;color:#92400E}
+    .tbl-empty{text-align:center;padding:32px;color:var(--gray);font-size:.85rem}
+    .pagination{display:flex;gap:6px;justify-content:flex-end;margin-top:14px;align-items:center;font-size:.82rem}
+    .pagination button{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:.8rem}
+    .pagination button:hover:not(:disabled){background:var(--light)}
+    .pagination button:disabled{opacity:.4;cursor:not-allowed}
+    .pagination .pg-info{color:var(--gray)}
+
+    /* ── Print ────────────────────────────────────────────────────── */
+    @media print{
+      header,.steps,.nav-tabs,#upload-section,#gradcam-section,#explain-section,
+      #review-section,.record-actions,.disclaimer,#page-dashboard{display:none!important}
+      #record-section,#page-analysis{display:block!important}
+      .record-card{border:1px solid #ccc;box-shadow:none}
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="flag"></div>
+  <div class="hbar">
+    <div class="logo">
+      <div class="logo-icon">&#129516;</div>
+      <div>
+        <h1>SIGHTAI</h1>
+        <p>Tuberculosis Detection Platform &bull; Ghana</p>
+      </div>
+    </div>
+    <span class="hbadge">DenseNet121 &bull; Grad-CAM &bull; Human-in-the-Loop</span>
+  </div>
+</header>
+
+<!-- Nav tabs -->
+<div style="background:var(--green-dark)">
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-analysis" onclick="switchPage('analysis')">&#129302; Analysis</div>
+    <div class="nav-tab" id="tab-dashboard" onclick="switchPage('dashboard')">&#128202; Dashboard</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     PAGE: ANALYSIS
+══════════════════════════════════════════════════════════════════ -->
+<div id="page-analysis">
+
+<!-- Progress steps -->
+<div class="steps">
+  <div class="steps-inner">
+    <div class="step active" id="s1">
+      <div class="step-num">1</div>
+      <div class="step-label">Upload X-Ray</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s2">
+      <div class="step-num">2</div>
+      <div class="step-label">AI Analysis</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s3">
+      <div class="step-num">3</div>
+      <div class="step-label">Explainability</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s4">
+      <div class="step-num">4</div>
+      <div class="step-label">Clinician Review</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="s5">
+      <div class="step-num">5</div>
+      <div class="step-label">Decision Record</div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ── Step 1 & 2: Upload + AI result ──────────────────────────── -->
+  <div class="top-grid">
+
+    <!-- Upload -->
+    <div class="card" id="upload-section">
+      <div class="card-title">&#128247; Upload Chest X-Ray</div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg,image/tiff"/>
+        <div class="upload-icon">&#x1F3E5;</div>
+        <p><strong>Click to upload</strong> or drag &amp; drop</p>
+        <p>PNG &bull; JPEG &bull; Frontal PA view recommended</p>
+      </div>
+      <div id="preview-wrap">
+        <img id="preview-img" src="" alt="X-ray preview"/>
+        <p id="preview-name"></p>
+      </div>
+      <div class="alert-box alert-error" id="upload-error"></div>
+      <button class="btn btn-primary" id="analyse-btn" disabled>&#129302; Analyse X-Ray</button>
+      <div class="spinner" id="spinner"></div>
+    </div>
+
+    <!-- AI Result -->
+    <div class="card" id="result-card">
+      <div class="card-title">&#128202; AI Analysis Result</div>
+      <div id="risk-badge" class="risk-badge"></div>
+
+      <div class="prob-bar-row">
+        <span>TB Probability</span><span id="prob-pct">–</span>
+      </div>
+      <div class="prob-track">
+        <div class="prob-fill" id="prob-fill" style="width:0%"></div>
+      </div>
+
+      <div class="mrow"><span class="mlabel">Risk Level</span><span class="mval" id="r-risk">–</span></div>
+      <div class="mrow"><span class="mlabel">Model Confidence</span><span class="mval" id="r-conf">–</span></div>
+      <div class="mrow"><span class="mlabel">Decision Threshold</span><span class="mval" id="r-thresh">–</span></div>
+      <div class="mrow"><span class="mlabel">File</span><span class="mval" id="r-file" style="font-size:.75rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">–</span></div>
+
+      <div class="ai-message" id="r-message"></div>
+    </div>
+  </div>
+
+  <!-- ── Step 3a: Grad-CAM ───────────────────────────────────────── -->
+  <div class="card" id="gradcam-section">
+    <div class="card-title">&#129302; AI Attention Map — Grad-CAM
+      <span style="font-size:.72rem;font-weight:400;color:var(--gray);margin-left:4px">
+        Shows which lung regions drove the prediction
+      </span>
+    </div>
+
+    <div class="gcam-tabs">
+      <button class="gcam-tab active" data-view="overlay">Overlay</button>
+      <button class="gcam-tab" data-view="original">Original</button>
+      <button class="gcam-tab" data-view="compare">Side by Side</button>
+    </div>
+
+    <div class="gcam-views">
+      <div class="gcam-view active" id="view-overlay">
+        <div class="gcam-img-wrap">
+          <img id="gcam-overlay-img" src="" alt="Grad-CAM overlay"/>
+          <p class="gcam-caption">Red/warm = high AI attention &bull; Blue/cool = low attention</p>
+        </div>
+        <div class="heatmap-legend">
+          <span>Low attention</span><div class="legend-bar"></div><span>High attention</span>
+        </div>
+      </div>
+      <div class="gcam-view" id="view-original">
+        <div class="gcam-img-wrap">
+          <img id="gcam-original-img" src="" alt="Original X-ray"/>
+          <p class="gcam-caption">Original chest X-ray (CLAHE enhanced)</p>
+        </div>
+      </div>
+      <div class="gcam-view" id="view-compare">
+        <div class="gcam-compare">
+          <div class="gcam-img-wrap">
+            <img id="gcam-cmp-orig" src="" alt="Original"/>
+            <p class="gcam-caption">Original X-Ray</p>
+          </div>
+          <div class="gcam-img-wrap">
+            <img id="gcam-cmp-overlay" src="" alt="Grad-CAM"/>
+            <p class="gcam-caption">Grad-CAM Attention Map</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step 3b: Explainability panel ──────────────────────────── -->
+  <div class="card" id="explain-section">
+    <div class="card-title">&#128269; What the AI Found &amp; Why</div>
+    <div class="xai-grid">
+      <div class="xai-box">
+        <h3>&#127919; Prediction Reasoning</h3>
+        <ul class="xai-list" id="xai-reasoning-list"></ul>
+      </div>
+      <div class="xai-box">
+        <h3>&#128218; TB Radiological Features Guide</h3>
+        <ul class="xai-list">
+          <li><span class="xai-dot dot-high"></span><span><strong>Upper lobe infiltrates</strong> — most common TB location (right &gt; left upper lobe)</span></li>
+          <li><span class="xai-dot dot-high"></span><span><strong>Cavitation</strong> — air-filled cavities, highly specific for active TB</span></li>
+          <li><span class="xai-dot dot-med"></span><span><strong>Consolidation</strong> — opacification of lung tissue, suggests active infection</span></li>
+          <li><span class="xai-dot dot-med"></span><span><strong>Miliary pattern</strong> — tiny nodules throughout both lungs (severe TB)</span></li>
+          <li><span class="xai-dot dot-low"></span><span><strong>Pleural effusion</strong> — fluid around lung, can be TB-associated</span></li>
+          <li><span class="xai-dot dot-low"></span><span><strong>Lymphadenopathy</strong> — enlarged lymph nodes visible on X-ray</span></li>
+        </ul>
+      </div>
+      <div class="xai-box">
+        <h3>&#9888;&#65039; Model Confidence Interpretation</h3>
+        <ul class="xai-list">
+          <li><span class="xai-dot dot-low"></span><span><strong>Prob &lt; 30%</strong> — Low risk. No significant TB radiological pattern detected.</span></li>
+          <li><span class="xai-dot dot-med"></span><span><strong>Prob 30–60%</strong> — Inconclusive. Ambiguous features present. Clinical judgement needed.</span></li>
+          <li><span class="xai-dot dot-high"></span><span><strong>Prob &gt; 60%</strong> — High risk. Clear TB-consistent radiological features detected.</span></li>
+        </ul>
+      </div>
+      <div class="xai-box">
+        <h3>&#128203; Recommended Next Steps</h3>
+        <ul class="xai-list" id="xai-steps-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step 4: Human-in-the-Loop Review ───────────────────────── -->
+  <div class="card" id="review-section">
+    <div class="card-title">&#127973; Clinician Review — Human in the Loop</div>
+    <p style="font-size:.82rem;color:var(--gray);margin-bottom:16px">
+      The AI result above is a <strong>decision support tool only</strong>.
+      Please review the X-ray, Grad-CAM, and AI findings, then record your clinical decision below.
+    </p>
+
+    <div class="section-divider">Patient Information</div>
+    <div class="review-grid">
+      <div class="form-group">
+        <label>Patient ID / File Number</label>
+        <input type="text" id="f-patient-id" placeholder="e.g. GH-2026-0042"/>
+      </div>
+      <div class="form-group">
+        <label>Patient Age</label>
+        <input type="text" id="f-patient-age" placeholder="e.g. 34"/>
+      </div>
+      <div class="form-group">
+        <label>Patient Sex</label>
+        <select id="f-patient-sex">
+          <option value="">Select...</option>
+          <option>Male</option><option>Female</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-divider">Clinician Information</div>
+    <div class="review-grid">
+      <div class="form-group">
+        <label>Clinician Name <span style="color:var(--red)">*</span></label>
+        <input type="text" id="f-clinician-name" placeholder="Dr. Ama Mensah"/>
+      </div>
+      <div class="form-group">
+        <label>Role / Specialty</label>
+        <select id="f-clinician-role">
+          <option value="">Select...</option>
+          <option>Radiologist</option>
+          <option>Pulmonologist</option>
+          <option>General Practitioner</option>
+          <option>TB Officer</option>
+          <option>Medical Officer</option>
+          <option>Nurse Practitioner</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Health Facility</label>
+        <input type="text" id="f-facility" placeholder="e.g. Korle Bu Teaching Hospital"/>
+      </div>
+    </div>
+
+    <div class="section-divider">Clinical Decision</div>
+    <div class="form-group">
+      <label>Do you agree with the AI prediction? <span style="color:var(--red)">*</span></label>
+      <div class="decision-opts">
+        <label class="decision-opt agree">
+          <input type="radio" name="decision" value="agree"/>
+          &#9989; Agree with AI
+        </label>
+        <label class="decision-opt disagree">
+          <input type="radio" name="decision" value="disagree"/>
+          &#10060; Override AI
+        </label>
+        <label class="decision-opt uncertain">
+          <input type="radio" name="decision" value="uncertain"/>
+          &#128204; Need More Info
+        </label>
+      </div>
+    </div>
+
+    <div id="override-row">
+      <div class="form-group">
+        <label>Your Clinical Diagnosis (override)</label>
+        <select id="f-final-label">
+          <option value="">Select correct diagnosis...</option>
+          <option value="Normal">Normal — No TB findings</option>
+          <option value="TB Detected">TB Detected — Active tuberculosis</option>
+          <option value="Inconclusive">Inconclusive — Further tests required</option>
+          <option value="Other pathology">Other pathology — Not TB related</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Clinical Findings &amp; Notes</label>
+      <textarea id="f-notes" placeholder="Describe your clinical findings, observations about the X-ray, patient history or any relevant context..."></textarea>
+    </div>
+
+    <div class="review-grid">
+      <div class="form-group">
+        <label>Recommended Action</label>
+        <select id="f-action">
+          <option value="">Select action...</option>
+          <option value="sputum_afb">Sputum AFB smear &amp; culture</option>
+          <option value="genepert">GeneXpert MTB/RIF test</option>
+          <option value="refer_specialist">Refer to TB specialist</option>
+          <option value="start_treatment">Start TB treatment (DOT)</option>
+          <option value="repeat_xray">Repeat X-ray in 4–6 weeks</option>
+          <option value="ct_scan">CT scan of chest</option>
+          <option value="routine_followup">Routine follow-up</option>
+          <option value="no_action">No action required</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Clinical Urgency</label>
+        <select id="f-urgency">
+          <option value="">Select urgency...</option>
+          <option value="emergency">Emergency — Immediate action</option>
+          <option value="urgent">Urgent — Within 24 hours</option>
+          <option value="soon">Soon — Within 1 week</option>
+          <option value="routine">Routine — Standard follow-up</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="alert-box alert-error"   id="review-error"></div>
+    <div class="alert-box alert-success" id="review-success"></div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-primary" id="submit-review-btn" style="flex:2">
+        &#128203; Submit Clinical Decision
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="switchPage('dashboard')">
+        &#128202; Dashboard
+      </button>
+    </div>
+    <div class="spinner" id="review-spinner"></div>
+  </div>
+
+  <!-- ── Step 5: Decision Record ────────────────────────────────── -->
+  <div id="record-section">
+    <div class="record-card">
+      <div class="record-header">
+        <div>
+          <div class="record-id" id="rec-id">SIGHTAI Decision Record</div>
+          <div style="font-size:.8rem;color:var(--green);font-weight:600">SIGHTAI Clinical Decision Record</div>
+        </div>
+        <div class="record-ts" id="rec-ts"></div>
+      </div>
+
+      <div class="record-grid">
+        <div class="record-box">
+          <h4>&#129302; AI Prediction</h4>
+          <div class="record-row"><span>Diagnosis</span><span id="rec-ai-label">–</span></div>
+          <div class="record-row"><span>TB Probability</span><span id="rec-ai-prob">–</span></div>
+          <div class="record-row"><span>Risk Level</span><span id="rec-ai-risk">–</span></div>
+          <div class="record-row"><span>Threshold</span><span id="rec-ai-thresh">–</span></div>
+        </div>
+        <div class="record-box">
+          <h4>&#127973; Clinician Decision</h4>
+          <div class="record-row"><span>Clinician</span><span id="rec-clin-name">–</span></div>
+          <div class="record-row"><span>Facility</span><span id="rec-facility">–</span></div>
+          <div class="record-row"><span>AI Agreement</span><span id="rec-agreement"></span></div>
+          <div class="record-row"><span>Final Diagnosis</span><span id="rec-final-label">–</span></div>
+        </div>
+        <div class="record-box">
+          <h4>&#128101; Patient</h4>
+          <div class="record-row"><span>Patient ID</span><span id="rec-pid">–</span></div>
+          <div class="record-row"><span>Age</span><span id="rec-age">–</span></div>
+          <div class="record-row"><span>Sex</span><span id="rec-sex">–</span></div>
+          <div class="record-row"><span>File</span><span id="rec-file">–</span></div>
+        </div>
+        <div class="record-box">
+          <h4>&#128204; Action Plan</h4>
+          <div class="record-row"><span>Recommended</span><span id="rec-action">–</span></div>
+          <div class="record-row"><span>Urgency</span><span id="rec-urgency">–</span></div>
+          <div class="record-row"><span>Review ID</span><span id="rec-review-id">–</span></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px;font-size:.78rem;font-weight:600;color:var(--gray)">CLINICAL NOTES</div>
+      <div class="record-notes" id="rec-notes">No notes recorded.</div>
+
+      <div class="record-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">&#128438; Print Record</button>
+        <button class="btn btn-secondary btn-sm" id="new-analysis-btn">&#43; New Analysis</button>
+        <button class="btn btn-secondary btn-sm" onclick="switchPage('dashboard')">&#128202; View Dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <strong>&#9888;&#65039; Medical Disclaimer</strong>
+    SIGHTAI is an AI-powered decision-support tool intended to assist qualified healthcare professionals only.
+    It does not constitute a clinical diagnosis. All AI results must be reviewed and confirmed by a licensed
+    clinician before any treatment decision is made. The Grad-CAM heatmap indicates model attention regions
+    and does not replace formal radiological interpretation.
+  </div>
+
+</main>
+</div><!-- end #page-analysis -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     PAGE: DASHBOARD
+══════════════════════════════════════════════════════════════════ -->
+<div id="page-dashboard">
+<main>
+
+  <!-- Stat cards -->
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card green">
+      <div class="stat-label">Total Reviews</div>
+      <div class="stat-value" id="st-total">–</div>
+      <div class="stat-sub" id="st-recent">loading...</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Agreement Rate</div>
+      <div class="stat-value" id="st-agree">–</div>
+      <div class="stat-sub">Clinician agreed with AI</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Override Rate</div>
+      <div class="stat-value" id="st-override">–</div>
+      <div class="stat-sub">Clinician overrode AI</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Avg TB Probability</div>
+      <div class="stat-value" id="st-avgprob">–</div>
+      <div class="stat-sub">Across all predictions</div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="charts-row">
+
+    <!-- Risk distribution bar chart -->
+    <div class="chart-card">
+      <div class="chart-title">&#128308; Risk Level Distribution</div>
+      <div class="bar-chart" id="chart-risk"></div>
+    </div>
+
+    <!-- Decision donut -->
+    <div class="chart-card">
+      <div class="chart-title">&#127973; Clinician Decisions</div>
+      <div class="donut-wrap" id="chart-decision">
+        <div class="donut"><svg viewBox="0 0 36 36" width="90" height="90" id="donut-svg"></svg></div>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+
+    <!-- Top facilities -->
+    <div class="chart-card">
+      <div class="chart-title">&#127973; Top Facilities</div>
+      <div class="bar-chart" id="chart-facilities"></div>
+    </div>
+
+  </div>
+
+  <!-- Reviews table -->
+  <div class="card">
+    <div class="card-title">&#128203; All Clinical Reviews</div>
+    <div class="table-toolbar">
+      <input type="text" id="tbl-search" placeholder="Search patient, clinician, file, facility..." oninput="debounceLoad()"/>
+      <select id="tbl-risk" onchange="loadReviews()">
+        <option value="">All risk levels</option>
+        <option value="High">High risk</option>
+        <option value="Medium">Medium risk</option>
+        <option value="Low">Low risk</option>
+      </select>
+      <select id="tbl-decision" onchange="loadReviews()">
+        <option value="">All decisions</option>
+        <option value="agree">Agreed</option>
+        <option value="disagree">Overridden</option>
+        <option value="uncertain">Uncertain</option>
+      </select>
+      <button class="btn-icon" onclick="loadReviews()">&#128260; Refresh</button>
+      <a href="/reviews/export/csv" class="btn-icon" style="text-decoration:none">&#128229; Export CSV</a>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>File</th>
+            <th>AI Label</th>
+            <th>Prob</th>
+            <th>Risk</th>
+            <th>Decision</th>
+            <th>Clinician</th>
+            <th>Facility</th>
+            <th>Patient</th>
+            <th>Urgency</th>
+          </tr>
+        </thead>
+        <tbody id="reviews-tbody">
+          <tr><td colspan="11" class="tbl-empty">Loading reviews...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button id="pg-prev" onclick="changePage(-1)" disabled>&#8592; Prev</button>
+      <span class="pg-info" id="pg-info">–</span>
+      <button id="pg-next" onclick="changePage(1)" disabled>Next &#8594;</button>
+    </div>
+  </div>
+
+</main>
+</div><!-- end #page-dashboard -->
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// ANALYSIS PAGE STATE
+// ════════════════════════════════════════════════════════════════════
+let currentResult  = null;
+let currentFile    = null;
+let selectedDecision = null;
+
+const fileInput   = document.getElementById('file-input');
+const uploadZone  = document.getElementById('upload-zone');
+const previewWrap = document.getElementById('preview-wrap');
+const previewImg  = document.getElementById('preview-img');
+const previewName = document.getElementById('preview-name');
+const analyseBtn  = document.getElementById('analyse-btn');
+const spinner     = document.getElementById('spinner');
+const uploadErr   = document.getElementById('upload-error');
+
+// ── Page switching ─────────────────────────────────────────────────
+function switchPage(page) {
+  document.getElementById('page-analysis').style.display  = page === 'analysis'  ? 'block' : 'none';
+  document.getElementById('page-dashboard').style.display = page === 'dashboard' ? 'block' : 'none';
+  document.getElementById('tab-analysis').classList.toggle('active',  page === 'analysis');
+  document.getElementById('tab-dashboard').classList.toggle('active', page === 'dashboard');
+  if (page === 'dashboard') { loadStats(); loadReviews(); }
+}
+
+// ── Step progress ──────────────────────────────────────────────────
+function setStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('s' + i);
+    el.classList.remove('active','done');
+    if (i < n)  el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  }
+}
+
+// ── Drag-and-drop ──────────────────────────────────────────────────
+uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  currentFile = file;
+  analyseBtn.disabled = false;
+  uploadErr.style.display = 'none';
+  resetAnalysis();
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    previewName.textContent = file.name;
+    previewWrap.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+  setStep(1);
+}
+
+function resetAnalysis() {
+  ['result-card','gradcam-section','explain-section','review-section','record-section']
+    .forEach(id => document.getElementById(id).style.display = 'none');
+  currentResult = null; selectedDecision = null;
+}
+
+// ── Analyse ────────────────────────────────────────────────────────
+analyseBtn.addEventListener('click', async () => {
+  if (!currentFile) return;
+  analyseBtn.disabled = true;
+  spinner.style.display = 'block';
+  uploadErr.style.display = 'none';
+  resetAnalysis();
+  setStep(2);
+
+  const fd = new FormData();
+  fd.append('file', currentFile);
+  try {
+    const res  = await fetch('/predict?explain=true', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Server error');
+    currentResult = data;
+    renderResult(data);
+    setStep(3);
+  } catch(err) {
+    uploadErr.textContent = 'Error: ' + err.message;
+    uploadErr.style.display = 'block';
+    setStep(1);
+  } finally {
+    spinner.style.display = 'none';
+    analyseBtn.disabled = false;
+  }
+});
+
+// ── Render AI result ───────────────────────────────────────────────
+function renderResult(d) {
+  const prob = d.tb_probability;
+  const pct  = (prob * 100).toFixed(1) + '%';
+  const risk = d.risk_level;
+
+  const icons = { Low:'&#128994;', Medium:'&#128993;', High:'&#128308;' };
+  const badge = document.getElementById('risk-badge');
+  badge.innerHTML = (icons[risk]||'&#9898;') + ' ' + d.label;
+  badge.className = 'risk-badge risk-' + risk;
+
+  const fill = document.getElementById('prob-fill');
+  fill.style.width = pct;
+  fill.className = 'prob-fill ' + (risk==='Low'?'fill-low': risk==='High'?'fill-high':'fill-med');
+  document.getElementById('prob-pct').textContent = pct;
+
+  document.getElementById('r-risk').textContent   = risk;
+  document.getElementById('r-conf').textContent   = ((d.confidence||0)*100).toFixed(1)+'%';
+  document.getElementById('r-thresh').textContent = d.threshold_used ?? '–';
+  document.getElementById('r-file').textContent   = d.filename || '–';
+  document.getElementById('r-message').textContent = d.message || '';
+
+  document.getElementById('result-card').style.display = 'block';
+
+  if (d.gradcam_image) {
+    ['gcam-overlay-img','gcam-cmp-overlay'].forEach(id => document.getElementById(id).src = d.gradcam_image);
+    ['gcam-original-img','gcam-cmp-orig'].forEach(id => document.getElementById(id).src = previewImg.src);
+    document.getElementById('gradcam-section').style.display = 'block';
+  }
+
+  renderExplainability(d);
+  document.getElementById('explain-section').style.display = 'block';
+  document.getElementById('review-section').style.display = 'block';
+  setTimeout(() => document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'start'}), 100);
+}
+
+// ── Grad-CAM tabs ──────────────────────────────────────────────────
+document.querySelectorAll('.gcam-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.gcam-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.gcam-view').forEach(v => v.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('view-' + tab.dataset.view).classList.add('active');
+  });
+});
+
+// ── Explainability reasoning ───────────────────────────────────────
+function renderExplainability(d) {
+  const prob = d.tb_probability;
+  const risk = d.risk_level;
+  const reasons = [];
+  if (prob >= 0.60) {
+    reasons.push({ dot:'dot-high', text:'<strong>High TB probability detected</strong> — the model identified strong radiological features consistent with active tuberculosis.' });
+    reasons.push({ dot:'dot-high', text:'<strong>Grad-CAM attention</strong> — warm regions on the heatmap indicate the lung areas most influential in this prediction. Check upper lobes closely.' });
+    reasons.push({ dot:'dot-med',  text:'<strong>Pattern confidence</strong> — features align with known TB radiological presentations (infiltrate, consolidation, or cavitation).' });
+  } else if (prob >= 0.30) {
+    reasons.push({ dot:'dot-med', text:'<strong>Ambiguous radiological features</strong> — the model found some patterns that may suggest TB but with low confidence.' });
+    reasons.push({ dot:'dot-med', text:'<strong>Inconclusive Grad-CAM</strong> — attention is distributed rather than focused on classic TB regions (upper lobes).' });
+    reasons.push({ dot:'dot-low', text:'<strong>Clinical correlation required</strong> — findings alone are insufficient. Sputum testing is strongly advised.' });
+  } else {
+    reasons.push({ dot:'dot-low', text:'<strong>Low TB probability</strong> — the model did not identify significant TB-consistent radiological patterns.' });
+    reasons.push({ dot:'dot-low', text:'<strong>Grad-CAM attention diffuse</strong> — no strong focal activation in typical TB regions (upper lobes, hilar areas).' });
+    reasons.push({ dot:'dot-low', text:'<strong>Normal-consistent appearance</strong> — lung fields appear within expected radiological parameters.' });
+  }
+  document.getElementById('xai-reasoning-list').innerHTML = reasons.map(r =>
+    `<li><span class="xai-dot ${r.dot}"></span><span>${r.text}</span></li>`
+  ).join('');
+
+  const steps = [];
+  if (risk === 'High') {
+    steps.push('&#128308; <strong>Urgent:</strong> Collect sputum for AFB smear and culture immediately');
+    steps.push('&#128308; <strong>Urgent:</strong> Consider GeneXpert MTB/RIF for rapid confirmation');
+    steps.push('&#128993; Isolate patient pending test results to prevent transmission');
+    steps.push('&#128993; Notify TB programme officer per national guidelines');
+  } else if (risk === 'Medium') {
+    steps.push('&#128993; <strong>Recommended:</strong> Sputum AFB smear and culture');
+    steps.push('&#128993; Clinical examination and detailed patient history review');
+    steps.push('&#128994; Repeat chest X-ray in 4–6 weeks if sputum is negative');
+    steps.push('&#128994; Contact tracing if patient has known TB exposure');
+  } else {
+    steps.push('&#128994; Routine clinical follow-up as per standard care');
+    steps.push('&#128994; Maintain TB screening schedule — annual for high-risk populations');
+    steps.push('&#128994; Reassess if patient develops symptoms: cough &gt;2 weeks, fever, night sweats');
+  }
+  document.getElementById('xai-steps-list').innerHTML = steps.map(s =>
+    `<li><span style="flex-shrink:0">&bull;</span><span>${s}</span></li>`
+  ).join('');
+}
+
+// ── Decision option selection ──────────────────────────────────────
+document.querySelectorAll('input[name=decision]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    selectedDecision = radio.value;
+    document.getElementById('override-row').style.display =
+      radio.value === 'disagree' ? 'block' : 'none';
+  });
+});
+
+// ── Submit review ──────────────────────────────────────────────────
+document.getElementById('submit-review-btn').addEventListener('click', async () => {
+  const clinName = document.getElementById('f-clinician-name').value.trim();
+  if (!clinName) { showAlert('review-error', 'Please enter the clinician name.'); return; }
+  if (!selectedDecision) { showAlert('review-error', 'Please select a clinical decision (Agree / Override / Uncertain).'); return; }
+  if (!currentResult)    { showAlert('review-error', 'No AI result found. Please analyse an X-ray first.'); return; }
+
+  document.getElementById('review-spinner').style.display = 'block';
+  document.getElementById('submit-review-btn').disabled = true;
+  document.getElementById('review-error').style.display = 'none';
+
+  const payload = {
+    filename:        currentResult.filename || '',
+    ai_label:        currentResult.label,
+    ai_probability:  currentResult.tb_probability,
+    ai_risk_level:   currentResult.risk_level,
+    ai_threshold:    currentResult.threshold_used || 0,
+    patient_id:      document.getElementById('f-patient-id').value.trim(),
+    patient_age:     document.getElementById('f-patient-age').value.trim(),
+    patient_sex:     document.getElementById('f-patient-sex').value,
+    clinician_name:  clinName,
+    clinician_role:  document.getElementById('f-clinician-role').value,
+    facility:        document.getElementById('f-facility').value.trim(),
+    decision:        selectedDecision,
+    final_label:     selectedDecision === 'disagree' ? document.getElementById('f-final-label').value : currentResult.label,
+    clinical_notes:  document.getElementById('f-notes').value.trim(),
+    recommended_action: document.getElementById('f-action').value,
+    urgency:         document.getElementById('f-urgency').value,
+  };
+
+  try {
+    const res  = await fetch('/review', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Server error');
+    renderRecord(payload, data);
+    showAlert('review-success', `Decision record saved — ID: ${data.review_id}`);
+    setStep(5);
+    setTimeout(() => document.getElementById('record-section').scrollIntoView({behavior:'smooth'}), 300);
+  } catch(err) {
+    showAlert('review-error', 'Failed to save review: ' + err.message);
+  } finally {
+    document.getElementById('review-spinner').style.display = 'none';
+    document.getElementById('submit-review-btn').disabled = false;
+  }
+});
+
+function renderRecord(payload, saved) {
+  const actionLabels = {
+    sputum_afb:'Sputum AFB smear & culture', genepert:'GeneXpert MTB/RIF',
+    refer_specialist:'Refer to TB specialist', start_treatment:'Start TB treatment (DOT)',
+    repeat_xray:'Repeat X-ray in 4–6 weeks', ct_scan:'CT scan of chest',
+    routine_followup:'Routine follow-up', no_action:'No action required', ''  :'Not specified'
+  };
+  const urgencyLabels = {
+    emergency:'&#128308; Emergency', urgent:'&#128993; Urgent',
+    soon:'&#128994; Soon', routine:'&#128994; Routine', '':'Not specified'
+  };
+  const agreeBadge = {
+    agree:    '<span class="agreement-badge agree-yes">&#9989; Agreed with AI</span>',
+    disagree: '<span class="agreement-badge agree-no">&#10060; Overrode AI</span>',
+    uncertain:'<span class="agreement-badge agree-unc">&#128204; Uncertain</span>',
+  };
+  document.getElementById('rec-id').textContent   = 'Record #' + saved.review_id;
+  document.getElementById('rec-ts').textContent   = new Date(saved.timestamp).toLocaleString();
+  document.getElementById('rec-ai-label').textContent  = payload.ai_label;
+  document.getElementById('rec-ai-prob').textContent   = (payload.ai_probability*100).toFixed(1)+'%';
+  document.getElementById('rec-ai-risk').textContent   = payload.ai_risk_level;
+  document.getElementById('rec-ai-thresh').textContent = payload.ai_threshold;
+  document.getElementById('rec-clin-name').textContent = payload.clinician_name + (payload.clinician_role ? ' ('+payload.clinician_role+')':'');
+  document.getElementById('rec-facility').textContent  = payload.facility || '–';
+  document.getElementById('rec-agreement').innerHTML   = agreeBadge[payload.decision] || payload.decision;
+  document.getElementById('rec-final-label').textContent = payload.final_label || payload.ai_label;
+  document.getElementById('rec-pid').textContent     = payload.patient_id || '–';
+  document.getElementById('rec-age').textContent     = payload.patient_age || '–';
+  document.getElementById('rec-sex').textContent     = payload.patient_sex || '–';
+  document.getElementById('rec-file').textContent    = payload.filename || '–';
+  document.getElementById('rec-action').textContent  = actionLabels[payload.recommended_action] || payload.recommended_action || '–';
+  document.getElementById('rec-urgency').innerHTML   = urgencyLabels[payload.urgency] || payload.urgency || '–';
+  document.getElementById('rec-review-id').textContent = saved.review_id;
+  document.getElementById('rec-notes').textContent   = payload.clinical_notes || 'No notes recorded.';
+  document.getElementById('record-section').style.display = 'block';
+}
+
+document.getElementById('new-analysis-btn').addEventListener('click', () => {
+  fileInput.value = '';
+  previewWrap.style.display = 'none';
+  analyseBtn.disabled = true;
+  currentFile = null;
+  resetAnalysis();
+  document.getElementById('upload-zone').scrollIntoView({behavior:'smooth'});
+  setStep(1);
+});
+
+function showAlert(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 6000);
+}
+
+setStep(1);
+
+
+// ════════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════════════
+let pgOffset = 0;
+const PG_LIMIT = 20;
+let searchTimer = null;
+
+function debounceLoad() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadReviews, 350);
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch('/stats');
+    const d   = await res.json();
+
+    document.getElementById('st-total').textContent   = d.total_reviews;
+    document.getElementById('st-agree').textContent   = d.agreement_rate + '%';
+    document.getElementById('st-override').textContent= d.override_rate + '%';
+    document.getElementById('st-avgprob').textContent = d.avg_probability + '%';
+    document.getElementById('st-recent').textContent  = d.recent_7d + ' in last 7 days';
+
+    // Risk bar chart
+    const riskColors = { High:'#EF4444', Medium:'#F59E0B', Low:'#10B981' };
+    const riskTotal  = Object.values(d.by_risk).reduce((a,b)=>a+b, 0) || 1;
+    document.getElementById('chart-risk').innerHTML = ['High','Medium','Low'].map(r => {
+      const cnt = d.by_risk[r] || 0;
+      const pct = (cnt / riskTotal * 100).toFixed(1);
+      return `<div class="bar-row">
+        <div class="bar-meta"><span class="bar-label">${r} Risk</span><span class="bar-count">${cnt} (${pct}%)</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${riskColors[r]}"></div></div>
+      </div>`;
+    }).join('');
+
+    // Decision donut (SVG)
+    const decColors   = { agree:'#10B981', disagree:'#EF4444', uncertain:'#F59E0B' };
+    const decLabels   = { agree:'Agreed', disagree:'Overrode AI', uncertain:'Uncertain' };
+    const decTotal    = d.total_reviews || 1;
+    let offset = 0;
+    const r = 15.9, cx = 18, cy = 18, circ = 2 * Math.PI * r;
+    let paths = '';
+    for (const [key, color] of Object.entries(decColors)) {
+      const cnt = d.by_decision[key] || 0;
+      const frac= cnt / decTotal;
+      const dash= frac * circ;
+      paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="4"
+        stroke-dasharray="${dash} ${circ - dash}" stroke-dashoffset="${-offset * circ}" />`;
+      offset += frac;
+    }
+    document.getElementById('donut-svg').innerHTML = paths;
+    document.getElementById('donut-legend').innerHTML = Object.entries(decColors).map(([key, color]) => {
+      const cnt = d.by_decision[key] || 0;
+      const pct = (cnt / decTotal * 100).toFixed(0);
+      return `<div class="donut-item"><div class="donut-dot" style="background:${color}"></div><span>${decLabels[key]}: <strong>${cnt}</strong> (${pct}%)</span></div>`;
+    }).join('');
+
+    // Facilities bar chart
+    const facMax = d.by_facility[0]?.cnt || 1;
+    document.getElementById('chart-facilities').innerHTML = d.by_facility.length
+      ? d.by_facility.map(f => {
+          const pct = (f.cnt / facMax * 100).toFixed(1);
+          return `<div class="bar-row">
+            <div class="bar-meta"><span class="bar-label" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.facility}">${f.facility || 'Unknown'}</span><span class="bar-count">${f.cnt}</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--green)"></div></div>
+          </div>`;
+        }).join('')
+      : '<div style="color:var(--gray);font-size:.82rem">No facility data yet.</div>';
+
+  } catch(e) {
+    console.error('Stats load failed:', e);
+  }
+}
+
+async function loadReviews() {
+  const search   = document.getElementById('tbl-search').value.trim();
+  const risk     = document.getElementById('tbl-risk').value;
+  const decision = document.getElementById('tbl-decision').value;
+
+  let url = `/reviews?limit=${PG_LIMIT}&offset=${pgOffset}`;
+  if (risk)     url += `&risk=${risk}`;
+  if (decision) url += `&decision=${decision}`;
+  if (search)   url += `&search=${encodeURIComponent(search)}`;
+
+  try {
+    const res = await fetch(url);
+    const d   = await res.json();
+    renderTable(d.reviews);
+
+    const total = d.total;
+    const page  = Math.floor(pgOffset / PG_LIMIT) + 1;
+    const pages = Math.ceil(total / PG_LIMIT) || 1;
+    document.getElementById('pg-info').textContent = `Page ${page} of ${pages} (${total} total)`;
+    document.getElementById('pg-prev').disabled = pgOffset === 0;
+    document.getElementById('pg-next').disabled = pgOffset + PG_LIMIT >= total;
+  } catch(e) {
+    document.getElementById('reviews-tbody').innerHTML =
+      `<tr><td colspan="11" class="tbl-empty">Error loading reviews.</td></tr>`;
+  }
+}
+
+function changePage(dir) {
+  pgOffset = Math.max(0, pgOffset + dir * PG_LIMIT);
+  loadReviews();
+}
+
+function renderTable(reviews) {
+  const tbody = document.getElementById('reviews-tbody');
+  if (!reviews.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="tbl-empty">No reviews found. Submit your first clinical decision on the Analysis tab.</td></tr>';
+    return;
+  }
+  const riskBadge = r => `<span class="tbl-badge tbl-${(r||'').toLowerCase()}">${r||'–'}</span>`;
+  const decBadge  = d => {
+    const map = { agree:'tbl-agree', disagree:'tbl-disagree', uncertain:'tbl-uncertain' };
+    const lbl = { agree:'Agreed', disagree:'Overrode AI', uncertain:'Uncertain' };
+    return `<span class="tbl-badge ${map[d]||''}">${lbl[d]||d||'–'}</span>`;
+  };
+  const urgIcons  = { emergency:'&#128308;', urgent:'&#128993;', soon:'&#128994;', routine:'&#128994;' };
+  tbody.innerHTML = reviews.map(r => `
+    <tr>
+      <td style="font-weight:700;font-size:.76rem;color:var(--green)">${r.review_id}</td>
+      <td style="white-space:nowrap;font-size:.76rem">${r.timestamp ? r.timestamp.replace('T',' ') : '–'}</td>
+      <td style="font-size:.76rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.filename||''}">${r.filename||'–'}</td>
+      <td>${r.ai_label||'–'}</td>
+      <td>${r.ai_probability!=null ? (r.ai_probability*100).toFixed(1)+'%' : '–'}</td>
+      <td>${riskBadge(r.ai_risk_level)}</td>
+      <td>${decBadge(r.decision)}</td>
+      <td style="white-space:nowrap">${r.clinician_name||'–'}${r.clinician_role?' <span style="color:var(--gray);font-size:.74rem">('+r.clinician_role+')</span>':''}</td>
+      <td style="font-size:.76rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.facility||''}">${r.facility||'–'}</td>
+      <td style="font-size:.76rem">${r.patient_id||'–'}${r.patient_age?' / '+r.patient_age+'y':''}</td>
+      <td>${urgIcons[r.urgency]||''} ${r.urgency||'–'}</td>
+    </tr>
+  `).join('');
+}
+
+</script>
+</body>
+</html>

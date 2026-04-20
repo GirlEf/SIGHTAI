@@ -1,0 +1,35 @@
+# ── Virtual environment ───────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Datasets (too large for GitHub — download separately) ─────────
+tuberculosis-chest-xrays-montgomery/
+tuberculosis-chest-xrays-shenzhen/
+
+# ── Trained model (66 MB — exceeds GitHub limit) ─────────────────
+saved_models/sightai_model.keras
+
+# ── Runtime data (user-specific, not source code) ─────────────────
+saved_models/reviews.db
+saved_models/reviews.json
+saved_models/reviews.json.bak
+
+# ── Python cache ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ── Jupyter ───────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── OS / editor ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Misc ──────────────────────────────────────────────────────────
+*.log
+*.tmp
